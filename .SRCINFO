@@ -5,7 +5,7 @@ pkgbase = nonicons-font
 	url = https://github.com/yamatsum/nonicons
 	arch = any
 	license = unknown
-	source = https://github.com/yamatsum/nonicons/raw/master/dist/nonicon.ttf
+	source = https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
 	sha512sums = 595d20985d9eaf9fa6a44a005f25e1e5710f138831008836e925ace1c70ef93c75578377948f671578a80a5f3ab5806c4cdca9866589b97d75c19913f08962f5
 
 pkgname = nonicons-font
