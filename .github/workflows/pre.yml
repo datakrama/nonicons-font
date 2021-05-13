@@ -1,0 +1,29 @@
+name: Pre
+
+on:
+  schedule:
+    - cron:  '30 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get sha512sums
+        id: sha512
+        run: echo "::set-output name=sha512sums::$(sed -n '/sha512sums=("/{s/.*sha512sums=("//;s/\").*//;p}' PKGBUILD)"
+
+      - name: Verify checksum
+        id: checksum
+        run: |
+          wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
+          sha512sum nonicons.ttf | 
+          while read -r sum _ ; do 
+            [[ $sum == ${{ steps.sha512.outputs.sha512sums }} ]] && echo "::set-output name=is_valid::true" || echo "::set-output name=is_valid::false"
+          done
+
