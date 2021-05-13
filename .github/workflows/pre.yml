@@ -29,10 +29,13 @@ jobs:
             [[ $sum == ${{ steps.sha512.outputs.sha512sums }} ]] && echo "::set-output name=is_valid::true" || echo "::set-output name=is_valid::false"
           done
 
+     - name: Echo validation result
+        run: echo ${{ steps.checksum.outputs.is_valid }}
+
   build:
     name: Build
     needs: check
-    if: ${{ needs.check.outputs.is_valid == false }}
+    if: needs.check.outputs.is_valid == false
     runs-on: ubuntu-latest
 
     steps:
