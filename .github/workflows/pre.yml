@@ -9,16 +9,18 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    outputs:
+      is_valid: ${{ steps.checksum.outputs.is_valid }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get sha512sums
+      - name: Get sha512sums from PKGBUILD
         id: sha512
         run: echo "::set-output name=sha512sums::$(sed -n '/sha512sums=("/{s/.*sha512sums=("//;s/\").*//;p}' PKGBUILD)"
 
-      - name: Verify checksum
+      - name: Verify checksum with upstream
         id: checksum
         run: |
           wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
@@ -26,4 +28,26 @@ jobs:
           while read -r sum _ ; do 
             [[ $sum == ${{ steps.sha512.outputs.sha512sums }} ]] && echo "::set-output name=is_valid::true" || echo "::set-output name=is_valid::false"
           done
+
+  build:
+    name: Build
+    needs: check
+    if: needs.check.outputs.is_valid == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get upstream git hash
+        id: get-hash
+        run: |
+          git clone https://github.com/yamatsum/nonicons.git
+          cd nonicons
+          echo "::set-output hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+
+      - name: Update has on PKGBUILD
+        run: |
+          sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
+          cat PKGBUILD
 
