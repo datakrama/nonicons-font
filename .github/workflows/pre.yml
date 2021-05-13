@@ -32,7 +32,7 @@ jobs:
   build:
     name: Build
     needs: check
-    if: needs.check.outputs.valid == false
+    if: needs.check.outputs.valid === false
     runs-on: ubuntu-latest
 
     steps:
