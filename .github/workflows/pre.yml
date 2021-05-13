@@ -44,7 +44,7 @@ jobs:
         run: |
           git clone https://github.com/yamatsum/nonicons.git
           cd nonicons
-          echo "::set-output hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
+          echo "::set-output name=hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
 
       - name: Update has on PKGBUILD
         run: |
