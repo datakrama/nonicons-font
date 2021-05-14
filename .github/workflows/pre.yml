@@ -34,11 +34,6 @@ jobs:
     needs: check
     if: needs.check.outputs.valid == 'false'
     runs-on: ubuntu-latest
-    container:
-      image: archlinux:base-devel
-      options: --privileged
-      volumes:
-        - /sys/fs/cgroup:/sys/fs/cgroup
 
     steps:
       - name: Checkout
@@ -74,7 +69,10 @@ jobs:
         run: sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
 
       - name: Generate new .SRCINFO
-        run: sudo -u mas makepkg --printsrcinfo > .SRCINFO
+        uses: edlanglois/pkgbuild-action@v1
+        with:
+          makepkgArgs: |
+            --printsrcinfo > .SRCINFO
 
       - name: Run cat with PKGBUILD & .SRCINFO
         run: |
@@ -83,7 +81,6 @@ jobs:
 
       - name: Push changes
         run: |
-          git init
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add PKGBUILD .SRCINFO 
