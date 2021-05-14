@@ -34,6 +34,11 @@ jobs:
     needs: check
     if: needs.check.outputs.valid == 'false'
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
 
     steps:
       - name: Checkout
@@ -46,8 +51,32 @@ jobs:
           cd nonicons
           echo "::set-output name=hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
 
-      - name: Update has on PKGBUILD
+      - name: Get upstream sha512 hash
+        id: get-sha512
         run: |
-          sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
-          cat PKGBUILD
+          wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
+          echo "::set-output name=hash::$(sha512sum nonicons.ttf | cut -f 1 -d " ")"
+
+      - name: Update git hash based version on PKGBUILD
+        run: sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
+
+      - name: Update checksums on PKGBUILD
+        run: sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
+
+      - name: Generate new .SRCINFO
+        run: makepkg --printsrcinfo > .SRCINFO
+
+      - name: Push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add PKGBUILD .SRCINFO 
+          git commit -m "Update package"
+          git push
+
+      - name: Trigger CI workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: CI
+          token: ${{ secrets.PERSONAL_TOKEN }}
 
