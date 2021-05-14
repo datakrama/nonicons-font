@@ -76,9 +76,13 @@ jobs:
       - name: Generate new .SRCINFO
         run: sudo -u mas makepkg --printsrcinfo > .SRCINFO
 
+      - name: Run cat with PKGBUILD & .SRCINFO
+        run: |
+          cat PKGBUILD
+          cat .SRCINFO
+
       - name: Push changes
         run: |
-          cd $GITHUB_WORKSPACE
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add PKGBUILD .SRCINFO 
