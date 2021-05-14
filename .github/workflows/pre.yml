@@ -39,16 +39,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: pacman -Syu --needed --noconfirm git wget sudo
-
-      - name: Setup sudo user & permission
-        run: |
-          useradd -m mas
-          usermod -aG wheel mas
-          echo 'wheel  ALL=(ALL:ALL) ALL' >> /etc/sudoers
-          chown -R mas $GITHUB_WORKSPACE
-
       - name: Get upstream git hash
         id: get-hash
         run: |
