@@ -45,7 +45,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: pacman -Syu --noconfirm git wget
+        run: pacman -Syu --needed --noconfirm git wget sudo
+
+      - name: Setup sudo user
+        run: |
+          useradd -m mas
+          usermod -aG wheel mas
+          echo 'wheel  ALL=(ALL:ALL) ALL' >> /etc/sudoers
 
       - name: Get upstream git hash
         id: get-hash
@@ -67,7 +73,7 @@ jobs:
         run: sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
 
       - name: Generate new .SRCINFO
-        run: makepkg --printsrcinfo > .SRCINFO
+        run: sudo -i -u mas makepkg --printsrcinfo > .SRCINFO
 
       - name: Push changes
         run: |
