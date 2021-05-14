@@ -52,24 +52,23 @@ jobs:
           wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
           echo "::set-output name=hash::$(sha512sum nonicons.ttf | cut -f 1 -d " ")"
 
-      - name: Update git hash based version on PKGBUILD
-        run: sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
-
-      - name: Update checksums on PKGBUILD
-        run: sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
-
-      - name: Run cat with PKGBUILD & .SRCINFO
+      - name: Update PKGBUILD
         run: |
+          sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
+          sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
           cat PKGBUILD
-          cat .SRCINFO
 
-      - name: Push changes
+      - name: Commit files
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add PKGBUILD .SRCINFO 
           git commit -m "Update package"
-          git push
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger CI workflow
         uses: benc-uk/workflow-dispatch@v1
