@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: pacman -Syu --noconfirm git
+        run: pacman -Syu --noconfirm git wget
 
       - name: Get upstream git hash
         id: get-hash
