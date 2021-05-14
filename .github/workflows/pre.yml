@@ -58,12 +58,6 @@ jobs:
       - name: Update checksums on PKGBUILD
         run: sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
 
-      - name: Generate new .SRCINFO
-        uses: edlanglois/pkgbuild-action@v1
-        with:
-          makepkgArgs: |
-            --printsrcinfo > .SRCINFO
-
       - name: Run cat with PKGBUILD & .SRCINFO
         run: |
           cat PKGBUILD
