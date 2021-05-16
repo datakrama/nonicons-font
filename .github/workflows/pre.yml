@@ -55,6 +55,7 @@ jobs:
       - name: Update PKGBUILD
         run: |
           sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
+          sed -i 's:^pkgrel=.*$:pkgrel=1:g' PKGBUILD
           sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
           git diff PKGBUILD
 
