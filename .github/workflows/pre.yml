@@ -2,7 +2,7 @@ name: Pre
 
 on:
   schedule:
-    - cron:  '30 5 * * *'
+    - cron: "30 5 * * *"
   workflow_dispatch:
 
 jobs:
@@ -24,8 +24,8 @@ jobs:
         id: checksum
         run: |
           wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
-          sha512sum nonicons.ttf | 
-          while read -r sum _ ; do 
+          sha512sum nonicons.ttf |
+          while read -r sum _ ; do
             [[ $sum == ${{ steps.sha512.outputs.sha512sums }} ]] && echo "::set-output name=is_valid::true" || echo "::set-output name=is_valid::false"
           done
 
@@ -46,25 +46,31 @@ jobs:
           cd nonicons
           echo "::set-output name=hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
 
-      - name: Get upstream sha512 hash
-        id: get-sha512
-        run: |
-          wget https://github.com/yamatsum/nonicons/raw/master/dist/nonicons.ttf
-          echo "::set-output name=hash::$(sha512sum nonicons.ttf | cut -f 1 -d " ")"
+      - name: Update checksums on PKGBUILD
+        uses: datakrama/archlinux-package-action@v1
+        with:
+          flags: ""
+          namcap: false
+          updpkgsums: true
 
-      - name: Update PKGBUILD
+      - name: Update pkgver & reset pkgrel on PKGBUILD
         run: |
           sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
           sed -i 's:^pkgrel=.*$:pkgrel=1:g' PKGBUILD
-          sed -i 's:^sha512sums=.*$:sha512sums=("${{ steps.get-sha512.outputs.hash }}"):g' PKGBUILD
-          git diff PKGBUILD
+
+      - name: Generate .SRCINFO
+        uses: datakrama/archlinux-package-action@v1
+        with:
+          flags: ""
+          namcap: false
+          srcinfo: true
 
       - name: Commit files
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PKGBUILD .SRCINFO 
-          git commit -m "Update package"
+          git add PKGBUILD .SRCINFO
+          git commit -m "feat: bump to ${{ steps.get-hash.outputs.hash }}"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
@@ -76,4 +82,4 @@ jobs:
         with:
           workflow: CI
           token: ${{ secrets.PERSONAL_TOKEN }}
-
+          inputs: '{ "version": ${{ steps.get-hash.outputs.hash }} }'
