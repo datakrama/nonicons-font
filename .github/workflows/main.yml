@@ -28,7 +28,7 @@ jobs:
 
   push:
     name: Release package
-    needs: validate
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
