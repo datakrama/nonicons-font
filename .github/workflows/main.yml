@@ -10,7 +10,6 @@ on:
       version:
         description: 'Upstream synced version'
         default: ''
-        required: true
 
 jobs:
   build:
@@ -45,12 +44,14 @@ jobs:
             COMMIT_MESSAGE="feat: bump to ${{ github.event.inputs.version }}"
           fi
 
-          git checkout aur
-          git checkout main PKGBUILD .SRCINFO
           git config --local user.name ${{ secrets.GIT_USERNAME }}
           git config --local user.email ${{ secrets.GIT_EMAIL }}
-          git add PKGBUILD .SRCINFO
-          git commit -m "$COMMIT_MESSAGE"
+          git checkout aur
+          git checkout main PKGBUILD .SRCINFO
+          if [[ -n "$(git diff --quiet)" ]]; then
+            git add PKGBUILD .SRCINFO
+            git commit -m "$COMMIT_MESSAGE"
+          fi
 
       - name: Push changes to GitHub
         uses: ad-m/github-push-action@master
