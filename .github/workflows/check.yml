@@ -1,8 +1,8 @@
-name: Pre
+name: Check
 
 on:
   schedule:
-    - cron: "30 5 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -46,24 +46,14 @@ jobs:
           cd nonicons
           echo "::set-output name=hash::$(printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)")"
 
-      - name: Update checksums on PKGBUILD
+      - name: Update PKGBUILD
         uses: datakrama/archlinux-package-action@v1
         with:
-          flags: ""
-          namcap: false
+          pkgver: ${{ steps.get-hash.outputs.hash }}
+          pkgrel: 1
           updpkgsums: true
-
-      - name: Update pkgver & reset pkgrel on PKGBUILD
-        run: |
-          sed -i 's:^pkgver=.*$:pkgver=${{ steps.get-hash.outputs.hash }}:g' PKGBUILD
-          sed -i 's:^pkgrel=.*$:pkgrel=1:g' PKGBUILD
-
-      - name: Generate .SRCINFO
-        uses: datakrama/archlinux-package-action@v1
-        with:
-          flags: ""
-          namcap: false
           srcinfo: true
+          flags: ""
 
       - name: Commit files
         run: |
@@ -82,4 +72,4 @@ jobs:
         with:
           workflow: CI
           token: ${{ secrets.PERSONAL_TOKEN }}
-          inputs: '{ "version": ${{ steps.get-hash.outputs.hash }} }'
+          inputs: '{ "version": "${{ steps.get-hash.outputs.hash }}" }'
